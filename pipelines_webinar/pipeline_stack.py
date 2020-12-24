@@ -5,8 +5,6 @@ from aws_cdk import pipelines
 
 from .webservice_stage import WebServiceStage
 
-APP_ACCOUNT = '123456789012'
-
 class PipelineStack(core.Stack):
   def __init__(self, scope: core.Construct, id: str, **kwargs):
     super().__init__(scope, id, **kwargs)
@@ -22,8 +20,9 @@ class PipelineStack(core.Stack):
         action_name='GitHub',
         output=source_artifact,
         oauth_token=core.SecretValue.secrets_manager('github-token'),
-        owner='OWNER**REPLACEME',
-        repo='REPO**REPLACEME',
+        owner='richardfan1126',
+        repo='cdk-pipelines-demo',
+        branch='python',
         trigger=cpactions.GitHubTrigger.POLL),
 
       synth_action=pipelines.SimpleSynthAction(
@@ -33,10 +32,7 @@ class PipelineStack(core.Stack):
         build_command='pytest unittests',
         synth_command='cdk synth'))
 
-    pre_prod_app = WebServiceStage(self, 'Pre-Prod', env={
-      'account': APP_ACCOUNT,
-      'region': 'eu-central-1',
-    })
+    pre_prod_app = WebServiceStage(self, 'Pre-Prod')
     pre_prod_stage = pipeline.add_application_stage(pre_prod_app)
     pre_prod_stage.add_actions(pipelines.ShellScriptAction(
       action_name='Integ',
@@ -50,10 +46,7 @@ class PipelineStack(core.Stack):
         'SERVICE_URL': pipeline.stack_output(pre_prod_app.url_output)
       }))
 
-    pipeline.add_application_stage(WebServiceStage(self, 'Prod', env={
-      'account': APP_ACCOUNT,
-      'region': 'eu-central-1',
-    }))
+    pipeline.add_application_stage(WebServiceStage(self, 'Prod'))
 
 
 
