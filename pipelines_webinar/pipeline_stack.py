@@ -45,6 +45,8 @@ class PipelineStack(core.Stack):
       use_outputs={
         'SERVICE_URL': pipeline.stack_output(pre_prod_app.url_output)
       }))
+    
+    pre_prod_stage.add_manual_approval_action()
 
     pipeline.add_application_stage(WebServiceStage(self, 'Prod'))
 
